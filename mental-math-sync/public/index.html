@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark light"><meta name="theme-color" content="#10131a"><link rel=manifest href="manifest.webmanifest"><link rel=icon href="icon-192.png"><link rel=apple-touch-icon href="icon-192.png"><meta name=mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-capable content=yes>
+<title>Mental Math Trainer</title>
+<style>
+:root{--bg:#10131a;--c:#181d27;--c2:#212736;--ln:#2a3142;--tx:#eceff6;--mu:#8e98ae;--ac:#7aa8ff;--ok:#4cd98a;--bad:#ff6b6b;--gd:#ffcf5c;--ach:#0b1226}
+[data-theme=light]{--bg:#f2f3f7;--c:#fff;--c2:#eceef4;--ln:#dfe3ec;--tx:#141a28;--mu:#5b667c;--ac:#2f63d6;--ok:#12975a;--bad:#d63b3b;--gd:#a86f00;--ach:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;-webkit-tap-highlight-color:transparent}
+#app{max-width:880px;margin:0 auto;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}h2{font-size:14px;font-weight:600;color:var(--mu);margin:26px 0 10px}
+.mu{color:var(--mu);font-size:13px}.card{background:var(--c);border:1px solid var(--ln);border-radius:14px;padding:14px 16px}
+.g{display:grid;gap:10px}.g3{grid-template-columns:repeat(auto-fit,minmax(125px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g4{grid-template-columns:repeat(4,1fr)}@media(max-width:700px){.g4{grid-template-columns:repeat(2,1fr)}}
+.big{font-size:26px;font-weight:700;line-height:1.2}kbd{background:var(--c2);border:1px solid var(--ln);border-radius:5px;padding:0 6px;font:12px ui-monospace,monospace}
+button{background:var(--c2);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:9px 14px;font:inherit;cursor:pointer;margin:0 6px 6px 0;transition:border-color .15s,background .15s}
+button:hover{border-color:var(--mu)}button.sel{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 18%,var(--c2))}
+button.p{background:var(--ac);border-color:var(--ac);color:var(--ach);font-weight:700}.p kbd{background:#0003;border-color:transparent;color:inherit}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:6px}.ic{width:40px;height:40px;padding:0;margin:0}
+.go{font-size:19px;padding:16px;margin:0;width:100%}
+.hud{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:12px;align-items:end}
+.bar{height:6px;background:var(--ln);border-radius:3px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;transition:width .12s linear}
+.lg{display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:10px}.race{margin-top:6px}
+.qc{border:2px solid var(--ln);border-radius:22px;margin:3vh 0 6px;padding:22px 8px 14px;text-align:center;background-color:var(--c);
+ background-image:linear-gradient(color-mix(in srgb,var(--ln) 55%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--ln) 55%,transparent) 1px,transparent 1px);background-size:26px 26px;background-position:center;transition:border-color .2s,box-shadow .25s}
+.q{font:800 clamp(44px,11vw,96px)/1.15 system-ui,sans-serif;letter-spacing:-.02em;margin:8px 0 0}
+.bf{font:700 clamp(30px,7vw,44px) ui-monospace,monospace;text-align:center;height:56px;color:var(--ac);margin-top:6px}
+.pill{display:inline-block;padding:2px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.in{animation:pop .12s ease-out}@keyframes pop{from{transform:scale(.93);opacity:.3}}
+.shake{animation:sh .22s}@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.okf{box-shadow:0 0 0 4px #4cd98a66}.badf{box-shadow:0 0 0 4px #ff6b6b66}
+.pad{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px auto 0;max-width:380px}.padon .pad{display:grid}
+.pad button{margin:0;padding:15px 0;font-size:24px;font-weight:600;touch-action:manipulation;user-select:none;-webkit-user-select:none}.pad button:nth-child(10),.pad button:nth-child(12){font-size:15px}.pad button:active{background:var(--ln)}
+.hint{text-align:center;margin-top:8px}@media(pointer:coarse){.hint{display:none}}
+table{width:100%;border-collapse:collapse}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:500;font-size:12px}
+.sp{width:100%;height:90px}.rd{width:100%;max-height:230px}
+.hm{display:grid;grid-auto-flow:column;grid-auto-columns:13px;grid-template-rows:repeat(7,13px);gap:3px;overflow-x:auto}.hm b{width:13px;height:13px;border-radius:3px;background:var(--ln)}
+.ch{display:inline-block;background:var(--c2);border:1px solid var(--ln);border-radius:20px;padding:3px 11px;margin:3px 4px 3px 0;font-size:13px}.ch.on{background:color-mix(in srgb,var(--ok) 22%,var(--c));border-color:var(--ok)}
+.wk{display:flex;gap:6px}.wk b{width:26px;height:26px;border-radius:7px;background:var(--ln);display:grid;place-items:center;font-size:11px;color:var(--mu)}.wk b.on{background:var(--ok);color:var(--ach)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:9px;opacity:0;transition:.2s;pointer-events:none;z-index:20;max-width:90vw}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.gd{color:var(--gd)}
+.hd{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+#help{position:fixed;inset:0;background:#000b;display:none;place-items:center;z-index:9;padding:16px}#help>div{background:var(--c);border:1px solid var(--ln);border-radius:16px;padding:22px 26px;max-width:520px;line-height:1.7}
+@media(prefers-reduced-motion:reduce){.in,.shake{animation:none}.bar i{transition:none}}
+#app{max-width:1280px}
+.play{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px}
+@media(max-width:860px){.play{grid-template-columns:1fr}.side{display:none}}
+.side .card{margin-bottom:10px}.fr{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid var(--ln)}
+.cmb{font-size:36px;font-weight:800;line-height:1.1}
+.qt{height:5px;background:var(--ln);border-radius:3px;margin:8px 36px 0;overflow:hidden}.qt i{display:block;height:100%;width:100%;background:var(--ok);transition:width .1s linear}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.cols>div{min-width:0}@media(max-width:860px){.cols{grid-template-columns:1fr}}
+[data-font=mono] .q{font-family:ui-monospace,"JetBrains Mono",Consolas,monospace}[data-font=round] .q{font-family:ui-rounded,"SF Pro Rounded","Segoe UI Variable Display",Nunito,system-ui,sans-serif}
+.row{display:grid;grid-template-columns:84px 1fr;gap:0 8px;margin-top:10px}.row>.mu{padding-top:7px}
+.row button{padding:5px 11px;font-size:14px;margin:0 4px 5px 0}.rd{max-height:300px}
+.play{margin-top:4vh}.qc{padding:clamp(24px,7vh,72px) 8px 18px}
+.g5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.hm{grid-auto-columns:20px;grid-template-rows:repeat(7,20px);gap:4px}.hm b{width:20px;height:20px;border-radius:4px}
+.zen .side,.zen .race,.zen .hint{display:none}.zen .play{grid-template-columns:1fr;max-width:860px;margin-inline:auto}.zen .q{font-size:clamp(56px,12vw,120px)}
+.card{transition:border-color .15s,transform .15s}.g4 .card:hover{transform:translateY(-2px);border-color:var(--mu)}::selection{background:color-mix(in srgb,var(--ac) 35%,transparent)}.q{text-shadow:0 2px 24px color-mix(in srgb,var(--ac) 20%,transparent)}@media(prefers-reduced-motion:reduce){.card{transition:none}}
+
+button:active{transform:scale(.97)}button.p{box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 35%,transparent)}button.p:hover{filter:brightness(1.08)}
+h1{background:linear-gradient(90deg,var(--tx),var(--ac));-webkit-background-clip:text;background-clip:text;color:transparent}
+.go{border-radius:14px}#t{transition:color .2s}
+.pad button{border-radius:14px;background:var(--c)}.pad button:active{background:var(--ln);transform:scale(.95)}
+.padx{display:none;text-align:center;margin-top:8px}.padon .padx{display:block}
+.padon .play{margin-top:1vh}.padon .qc{padding-top:clamp(14px,3vh,36px);margin-top:1vh}
+#help>div{max-height:88vh;overflow:auto}
+@media(max-width:520px){.hud{gap:8px}.hud>.sm{grid-column:1/-1;justify-self:start}.hud{grid-template-columns:1fr 1fr 1fr}.big{font-size:22px}.row{grid-template-columns:1fr}.row>.mu{padding-top:0}}
+@media(prefers-reduced-motion:reduce){button:active,.pad button:active{transform:none}}
+.bst{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}.bst i{position:absolute;top:-30px;font-style:normal;animation:fall 2.4s ease-in forwards}@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}@media(prefers-reduced-motion:reduce){.bst{display:none}}
+html{overscroll-behavior-y:contain}body{touch-action:manipulation}.card{overflow-x:auto}.qc,.pad button{user-select:none;-webkit-user-select:none}
+@media(max-height:720px){.padon .pad button{padding:11px 0}.padon .q{font-size:clamp(38px,10vw,68px)}.padon .bf{height:44px}}
+.card[role=button]{cursor:pointer}[role=button]:focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:14px}#sy{padding:3px 0;font-weight:500}
+</style></head><body><div id=help></div><div id="app"></div><div id="toast"></div>
+<input type="file" id="imp" accept=".json" hidden>
+<script>
+const VER='2.2',KEY='mmTrainer.v1',$=s=>document.querySelector(s);
+const SK={add:{n:'Addition',m:.8,s:4.5},sub:{n:'Subtraction',m:.9,s:4.5},mul:{n:'Multiplication',m:1,s:5},div:{n:'Division',m:1,s:5},sq:{n:'Squares',m:.9,s:4},pct:{n:'Percent',m:1.1,s:4},ops:{n:'Multi-step',m:1.5,s:4}};
+const COL={add:'#6ea8ff',sub:'#8e9bff',mul:'#ff9f5a',div:'#ffcf5c',sq:'#4cd98a',pct:'#ff6b9a',ops:'#b48cff'},SH={add:'Add',sub:'Sub',mul:'Mul',div:'Div',sq:'Sq',pct:'%',ops:'Multi'},IDS=Object.keys(SK),clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(A,d)=>{const i=clamp(d,1,12)-1,lo=Math.floor(i);return A[lo]+(A[Math.min(lo+1,11)]-A[lo])*(i-lo)};
+const T=(k,d)=>SK[k].m*(.8+.3*d+.025*d*d);               // target seconds for a skill at difficulty d
+const ymd=(t=Date.now())=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+/* ---------- state ---------- */
+const fresh=()=>{const sk={};IDS.forEach(k=>sk[k]={lv:SK[k].s,acc:.9,spd:1,n:0});return{v:1,sk,sessions:[],weak:{},best:{},ms:[],lastExport:0,pat:{},rustFor:0}};
+let S;try{S=JSON.parse(localStorage[KEY])}catch(e){}if(!S||!S.sk||!S.sessions)S=fresh();S.pat=S.pat||{};
+const ACC={blue:['#7aa8ff','#2f63d6'],violet:['#b69cff','#6d46d6'],teal:['#4fd1c5','#0f857b'],rose:['#ff8fb1','#d1366b'],amber:['#ffc15c','#b86e00']};
+const applyTheme=()=>{const th=S.theme||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'),D=document.documentElement;D.dataset.theme=th;{const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th=='light'?'#f2f3f7':'#10131a'}D.dataset.font=S.font||'sans';D.style.setProperty('--ac',(ACC[S.acc]||ACC.blue)[th=='light'?1:0]);document.body.classList.toggle('padon',S.pad!=null?S.pad:matchMedia('(pointer:coarse)').matches);document.body.classList.toggle('zen',!!S.zen)};
+const mkOf=c=>(c.only=='all'?(c.dur==120?'train':'t'+c.dur):c.only=='mix'?'mix'+(c.mix||[]).slice().sort().join('')+c.dur:c.only+c.dur)+(c.off?'o'+c.off:'')+(c.patt?'~'+c.patt:'');
+function drill(k){S.cfg=Object.assign({dur:120,only:'all'},S.cfg,{only:k});delete S.cfg.patt;save();start()}
+function cfg(k,v){S.cfg=Object.assign({dur:120,only:'all'},S.cfg);S.cfg[k]=v;if(k=='only')delete S.cfg.patt;if(k=='only'&&v=='mix'&&!(S.cfg.mix||[]).length)S.cfg.mix=['mul','div'];save();home()}
+function mixT(k){S.cfg=Object.assign({dur:120,only:'mix'},S.cfg);const m=new Set(S.cfg.mix||[]);m.has(k)?m.delete(k):m.add(k);S.cfg.mix=[...m];save();home()}
+const save=()=>{S.u=Date.now();try{localStorage[KEY]=JSON.stringify(S)}catch(e){toast('Storage full/blocked: export a backup!')}pushSoon()};
+function toast(m){const t=$('#toast');t.textContent=m;t.style.opacity=1;clearTimeout(t.h);t.h=setTimeout(()=>t.style.opacity=0,2200)}
+/* ---------- generators ---------- */
+const ri=(a,b,R)=>a+Math.floor(R()*(b-a+1)),gcd=(a,b)=>b?gcd(b,a%b):a;
+function gen(k,d,R){d=clamp(d,1,12);let q,a,pt='',tip='';
+ const cc=(x,y)=>{let c=0,r=0;while(x>0||y>0){const t=x%10+y%10+r;r=t>=10?1:0;c+=r;x=Math.floor(x/10);y=Math.floor(y/10)}return c};
+ const bw=(x,y)=>{let c=0,r=0;while(x>0||y>0){r=x%10-r<y%10?1:0;c+=r;x=Math.floor(x/10);y=Math.floor(y/10)}return c};
+ const lab=(n,w)=>n==0?'no '+w:n==1?'1 '+w:'2+ '+w+'s';
+ const M=Math.round(10**(.5+.35*d)),A=Math.round(lerp([9,9,12,12,12,20,30,50,75,99,150,300],d)),B=Math.round(lerp([9,12,30,60,100,100,100,99,99,99,99,99],d)),L=(h,f)=>Math.min(h,Math.max(2,Math.round(h*f)));
+ if(k=='add'){const x=ri(L(M,.2),M,R),y=ri(L(M,.2),M,R);q=x+' + '+y;a=x+y;pt=lab(Math.min(2,cc(x,y)),'carry').replace('carrys','carries')}
+ else if(k=='sub'){const x=ri(Math.max(3,L(M,.35)),M,R),y=ri(Math.min(x-1,L(x,.2)),x-1,R);q=x+' − '+y;a=x-y;pt=lab(Math.min(2,bw(x,y)),'borrow')}
+ else if(k=='mul'){let x=ri(L(A,.35),A,R),y=ri(L(B,.35),B,R);const t=d>=3&&R()<.28?Math.floor(R()*4):-1;pt=String(x).length+'×'+String(y).length+' digits';
+  if(t==0){x=11;y=d<6?ri(12,99,R):ri(100,Math.min(999,Math.round(100+(d-5)*130)),R);pt='×11 trick';tip='×11: split the digits and put their sum between (36×11 → 3_9_6 = 396)'}
+  else if(t==1){x=25;y=ri(Math.round(2+d*1.5),Math.round(30+d*15),R);pt='×25 trick';tip='×25 = ÷4 then ×100 (e.g. 36×25 → 9 → 900)'}
+  else if(t==2&&d>=6){x=ri(88,112,R);y=ri(88,112,R);pt='near-100 trick';tip='near 100: 100×(100+a+b) + a×b, with a,b signed distances from 100'}
+  else if(t==3){x=ri(L(A,.35),A,R);y=R()<.5?99:101;pt='×99/×101 trick';tip='×99 = ×100 − x; ×101 = ×100 + x'}
+  q=x+' × '+y;a=x*y}
+ else if(k=='div'){const x=ri(L(A,.35),A,R),y=ri(L(B,.35),B,R);q=x*y+' ÷ '+x;a=y;pt='quotient '+String(y).length+'-digit'}
+ else if(k=='sq'){const mx=Math.round(lerp([12,15,20,25,30,40,50,75,99,125,150,200],d));let n=ri(Math.max(3,L(mx,.35)),mx,R);const t=R()<.3?Math.floor(R()*3):-1;pt='general';
+  if(t==0&&mx>=35){n=ri(Math.max(1,Math.round(Math.floor((mx-5)/10)*.35)),Math.floor((mx-5)/10),R)*10+5;pt='ends in 5 trick';tip='n5²: n×(n+1), then append 25 (35² → 3×4=12 → 1225)'}
+  else if(t==1&&mx>=55){n=ri(40,60,R);pt='near-50 trick';tip='(50±k)² = 2500 ± 100k + k²'}
+  else if(t==2&&mx>=95){n=ri(91,109,R);pt='near-100 trick';tip='(100±k)² = 10000 ± 200k + k²'}
+  q=n+'²';a=n*n}
+ else if(k=='pct'){const P=d<3?[10,50,25,20]:d<5?[10,50,25,20,5,75,40,30]:d<7?[15,12,35,60,45,8,90,5]:[17,13,28,37,6,65,125,35,15,45];
+  const p=P[Math.floor(R()*P.length)],st=100/gcd(p,100),U=Math.max(1,Math.floor(10**(2+.12*d)/st)),n=st*ri(Math.max(1,Math.round(U*.3)),U,R);q=p+'% of '+n;a=n*p/100;pt=[10,50,25,20,5,75].includes(p)?'friendly %':'awkward %'}
+ else{const s1=Math.round(lerp([9,12,20,30,50,80,99,150,250,400,600,999],d)),s2=Math.round(lerp([5,6,8,9,12,12,15,20,25,30,40,50],d)),f=Math.floor(R()*4);pt=['a + b × c','(a + b) × c','a × b − c','(a − b) × c'][f];
+  const x=ri(Math.max(3,L(s1,.3)),s1,R),y=ri(L(s2,.4),s2,R),z=ri(L(s2,.4),s2,R),h1=Math.max(3,s1>>1),u=ri(L(h1,.3),h1,R),v=ri(L(h1,.3),h1,R);
+  if(f==0){q=x+' + '+y+' × '+z;a=x+y*z}else if(f==1){q='('+u+' + '+v+') × '+z;a=(u+v)*z}
+  else if(f==2){const c=ri(1,Math.min(s1,y*z-1),R);q=y+' × '+z+' − '+c;a=y*z-c}else{const r=ri(1,Math.max(1,Math.round(x*.7)),R);q='('+x+' − '+r+') × '+y;a=(x-r)*y}}
+ return{q,a,sk:k,d,pt,tip}}
+/* ---------- adaptive engine ---------- */
+const pp=y=>String(y).split('').map((c,i,A)=>+c*10**(A.length-1-i)).filter(Boolean),sg=v=>v<0?'−':'+';
+function how(p){const n=(p.q.match(/\d+/g)||[]).map(Number),a=p.a;let m,t;
+ if(p.sk=='add'){t=n[0];return n[0]+pp(n[1]).map(v=>' + '+v+' → '+(t+=v)).join('')}
+ if(p.sk=='sub'){t=n[0];return n[0]+pp(n[1]).map(v=>' − '+v+' → '+(t-=v)).join('')}
+ if(p.sk=='mul'){const x=Math.max(n[0],n[1]),y=Math.min(n[0],n[1]),P=pp(y);return P.length<2?x+' × '+y+' = '+a:P.map(v=>x+'×'+v).join(' + ')+' = '+P.map(v=>x*v).join(' + ')+' = '+a}
+ if(p.sk=='div')return n[1]+' × '+a+' = '+n[0]+', so '+n[0]+' ÷ '+n[1]+' = '+a;
+ if(p.sk=='sq'){const c=Math.round(n[0]/10)*10,e=n[0]-c;return e&&c?n[0]+'² = ('+c+sg(e)+Math.abs(e)+')² = '+c*c+' '+sg(2*c*e)+' '+Math.abs(2*c*e)+' + '+e*e+' = '+a:n[0]+'² = '+a}
+ if(p.sk=='pct')return n[0]%10==0?'10% of '+n[1]+' = '+n[1]/10+', × '+n[0]/10+' = '+a:'1% of '+n[1]+' = '+n[1]/100+', × '+n[0]+' = '+a;
+ if(m=p.q.match(/^\((\d+) ([+−]) (\d+)\) × (\d+)$/)){const i=m[2]=='+'?+m[1]+ +m[3]:m[1]-m[3];return '('+m[1]+' '+m[2]+' '+m[3]+') = '+i+', then × '+m[4]+' = '+a}
+ if(m=p.q.match(/^(\d+) \+ (\d+) × (\d+)$/))return m[2]+' × '+m[3]+' = '+m[2]*m[3]+' first, then + '+m[1]+' = '+a;
+ if(m=p.q.match(/^(\d+) × (\d+) − (\d+)$/))return m[1]+' × '+m[2]+' = '+m[1]*m[2]+', then − '+m[3]+' = '+a;
+ return ''}
+function calib(){const v=parseInt(prompt('Set every skill rating to (100–1200)?',Math.round(avgLv()*100)));if(v>=100&&v<=1200){IDS.forEach(k=>S.sk[k].lv=clamp(v/100,1,12));save();home();toast('All ratings set to '+v)}}
+const strength=k=>{const s=S.sk[k];return(1-s.acc)*3+Math.max(0,s.spd-1)};   // higher = weaker
+const mb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function customLen(){const v=parseInt(prompt('Session length in seconds (10–3600)?',(S.cfg&&S.cfg.dur)||120));if(v>=10&&v<=3600)cfg('dur',v)}
+function nb(){scr='nb';const W=Object.values(S.weak).sort((a,b)=>a.box-b.box||(b.at||0)-(a.at||0));
+ $('#app').innerHTML=`<div class=hd><h1>📓 Notebook</h1><button onclick="act('Escape')"><kbd>Esc</kbd> Back</button></div><div class=mu style="margin:6px 0 14px">Everything you missed, with the worked method. An item clears after 3 fast correct answers, spaced out. ${W.length} open.</div>
+ ${W.length?`<div class=card><table><tr><th>Question<th>Answer<th>Worked method<th>Skill<th>Stage</tr>${W.map(w=>`<tr><td><b>${w.q}</b><td>${w.a}<td class=mu>${how(w)||w.tip||''}<td style="color:${COL[w.sk]}">${SK[w.sk].n}<td>${w.box}/3</tr>`).join('')}</table></div><p><button class=p onclick="start('review')">Review ${Math.min(W.length,20)} now <kbd>R</kbd></button><button onclick="if(confirm('Clear all missed questions?')){S.weak={};save();nb()}">Clear all</button></p>`:'<div class=card>Nothing missed yet. Nice.</div>'}`}
+const weakest=()=>IDS.slice().sort((a,b)=>strength(b)-strength(a))[0];
+function drillPat(key){const[n,pt]=key.split(' · '),k=IDS.find(i=>SK[i].n==n);if(!k)return;S.cfg=Object.assign({dur:120},S.cfg,{only:k,patt:pt});save();start()}
+const avgLv=()=>IDS.reduce((a,k)=>a+S.sk[k].lv,0)/IDS.length;
+let sess=null,scr='home',buf='',tick,WL;
+async function wl(on){try{if(on&&'wakeLock'in navigator)WL=await navigator.wakeLock.request('screen');else if(WL){WL.release();WL=null}}catch(e){}}
+function burst(n=36){const c=document.createElement('div');c.className='bst';for(let i=0;i<n;i++){const b=document.createElement('i');b.textContent=['🎉','✨','⭐','🏅'][i%4];b.style.cssText='left:'+Math.random()*100+'%;animation-delay:'+Math.random()*.5+'s;font-size:'+(16+Math.random()*16)+'px';c.append(b)}document.body.append(c);setTimeout(()=>c.remove(),3200)}
+const PAD='<div class=pad>'+[1,2,3,4,5,6,7,8,9,'⌫',0,'Skip'].map(k=>`<button aria-label="${k==='⌫'?'Backspace':k}" onclick="act('${k==='⌫'?'Backspace':k==='Skip'?'Enter':k}')">${k}</button>`).join('')+'</div><div class=padx><button onclick="act(\'h\')">💡 Show method</button></div>';
+function pickSkill(){   // every skill appears; weaker ones (low accuracy / slow) get more weight; never 3 in a row
+ if(sess.only&&sess.only!='all'&&sess.only!='mix')return sess.only;
+ const w=IDS.map(k=>sess.only=='mix'&&!sess.pool.includes(k)?0:k==sess.last[0]&&k==sess.last[1]?0:1+2*strength(k));
+ let r=Math.random()*w.reduce((a,b)=>a+b),i=0;while(r>w[i]&&i<IDS.length-1){r-=w[i];i++}return IDS[i]}
+const qk=q=>{const m=q.match(/^(\d+) ([+×]) (\d+)$/);return m?[+m[1],+m[3]].sort((a,b)=>a-b).join(m[2]):q},H=()=>S.hist||(S.hist=[]);
+function nextQ(){if(sess.only=='daily'){const R=sess.rng,k=IDS[Math.floor(R()*7)];return gen(k,6,R)}if(sess.only=='review')return nextQ0();let best=null,bi=1e9;
+ for(let i=0;i<30;i++){const cds=sess.retry.map(r=>r.cd),p=nextQ0();if(!p||p.rt)return p;const ix=H().lastIndexOf(qk(p.q));if(ix<0)return p;if(ix<bi){bi=ix;best=p}sess.retry.forEach((r,j)=>r.cd=cds[j])}
+ sess.retry.forEach(r=>r.cd--);return best}
+function nextQ0(){
+ if(sess.only=='review'){const P=Object.values(S.weak).filter(w=>!sess.done[w.q]),Q=P.filter(w=>!sess.recent.includes(w.q)),pool=Q.length?Q:P;if(!pool.length||Object.keys(sess.done).length>=20)return null;return variant(pool[0|Math.random()*pool.length])}
+ sess.retry.forEach(r=>r.cd--);const it=sess.retry.find(r=>r.cd<=0);
+ if(it){sess.retry.splice(sess.retry.indexOf(it),1);return{...it.p,rt:1}}
+ if(Math.random()<.07){const now=Date.now(),c=Object.values(S.weak).filter(w=>w.due<=now&&w.box>0&&now-(w.at||0)>6e5&&!sess.recent.includes(w.q)&&(sess.only=='all'||(sess.only=='mix'?sess.pool.includes(w.sk):w.sk==sess.only)));if(c.length)return variant(c[0|Math.random()*c.length])}
+ const k=pickSkill(),R=Math.random;let bonus=0;sess.last=[k,sess.last[0]];
+ let d=S.sk[k].lv+R()*1.7-1+(sess.off||0)+Math.min(.9,Math.max(0,(sess.combo-4)*.15))-(sess.combo==0&&sess.n>5?.3:0);if(sess.n<5)d-=1;else if(R()<.07){bonus=1;d+=1.5}   // 5-question warm-up
+ const wt=c=>{const o=S.pat[SK[c.sk].n+' · '+c.pt];return o&&o.n>=6?(1-o.ok/o.n)*3+Math.max(0,(o.ok?o.r/o.ok:2)-1):.3};
+ let p=gen(k,d,R);if(sess.patt)for(let i=0;i<40&&p.pt!=sess.patt;i++)p=gen(k,d,R);else for(let i=0;i<3;i++){const c=gen(k,d,R);if(wt(c)>wt(p)&&R()<.7)p=c}p.bonus=bonus;return p}
+const INT=[0,6e5,864e5,2.6e8,6e8];
+function answer(ok){
+ const p=sess.cur,tm=Math.min((performance.now()-sess.qs)/1000,15),Tt=T(p.sk,p.d),r=tm/Tt,s=S.sk[p.sk];
+ const sc=!ok?0:(r<=.7?1:r>=2?.35:1-(r-.7)*.5)*Math.max(.4,1-.2*(p.tries||0));                    // 0..1 performance score
+ let lvl='';if(!p.rt&&!sess.off&&!p.hinted){const lb=Math.floor(s.lv);s.lv=clamp(s.lv+(s.n<40?.5:s.n<120?.35:.25)*(sc-.72)*(p.bonus?1.3:1),1,12);   // target score ~0.72 = just hard enough
+  s.pk=Math.max(s.pk||0,s.lv);s.acc=s.acc*.95+.05*ok;if(ok)s.spd=s.spd*.9+.1*r;s.n++;if(Math.floor(s.lv)>lb){lvl=SK[p.sk].n+' → '+Math.floor(s.lv)*100;sess.lu.push(lvl)}}
+ const b=sess.by[p.sk]=sess.by[p.sk]||[0,0,0];b[0]++;sess.n++;
+ if(ok){b[1]++;b[2]+=tm;sess.ok++;if(!p.tries)sess.ft=(sess.ft||0)+1;sess.tsum+=tm;sess.pts+=Math.round(Tt*10*(p.hinted?.5:1)*(p.tries?.7:1))*(p.bonus?2:1);sess.g.push([+sess.el.toFixed(1),sess.pts])}
+ snd(ok);flash(ok);feedUp(ok,p,tm,r);if(ok&&!p.rt)sess.tl.push([p.q,tm,how(p)]);if(!p.rt&&p.pt){const pk=SK[p.sk].n+' · '+p.pt,o=S.pat[pk]=S.pat[pk]||{n:0,ok:0,r:0};o.n++;if(ok){o.ok++;o.r+=r}}
+ const w=S.weak[p.wk||p.q];if(ok&&sess.only=='review')sess.done[p.wk||p.q]=1;
+ if(ok&&w){if(r<=1.3){w.box++;if(w.box>=3)delete S.weak[p.wk||p.q];else w.due=Date.now()+INT[w.box]}else w.due=Date.now()+6e5}
+ if(!ok){if(p.wk&&S.weak[p.wk])Object.assign(S.weak[p.wk],{box:0,due:Date.now(),at:Date.now()});else S.weak[p.q]={q:p.q,a:p.a,sk:p.sk,d:p.d,pt:p.pt,tip:p.tip,box:0,due:Date.now(),at:Date.now()};
+  sess.retry.push({p:{q:p.q,a:p.a,sk:p.sk,d:p.d,pt:p.pt,tip:p.tip},cd:4});
+  if(Object.keys(S.weak).length>80)delete S.weak[Object.values(S.weak).sort((x,y)=>y.box-x.box)[0].q];
+  if(sess.miss.length<8)sess.miss.push(p.q+' = '+p.a+(how(p)?'<br><span style="opacity:.7">🧠 '+how(p)+'</span>':''));
+  $('#ms').innerHTML='<span class=bad>✗ '+p.q+' = '+p.a+'</span>'+(p.tip?'<div class=mu>💡 '+p.tip+'</div>':'')+(how(p)?'<div class=mu>🧠 '+how(p)+'</div>':'')}
+ else $('#ms').innerHTML=lvl?'<span class=gd>🎉 '+lvl+'</span>':'<span class='+(r<=.7?'ok':'mu')+'>'+tm.toFixed(1)+'s'+(r<=.7?' ⚡':'')+'</span>';
+ H().push(qk(p.q));if(H().length>240)H().shift();sess.recent.push(p.q);if(sess.recent.length>6)sess.recent.shift()}
+/* ---------- session flow ---------- */
+function start(opt){
+ const cf=Object.assign({dur:120,only:'all'},S.cfg),rv=opt==='review',dy=opt==='daily',mx=(cf.mix||[]).filter(k=>IDS.includes(k)),on=rv?'review':dy?'daily':cf.only=='mix'?(mx.length==1?mx[0]:mx.length?'mix':'all'):cf.only,mk=rv?'review':dy?'daily'+ymd():mkOf(cf),last=S.sessions.length&&S.sessions[S.sessions.length-1].t;
+ if(last&&S.rustFor!=last){S.rustFor=last;const g=Math.floor((Date.now()-last)/864e5);   // idle-time rust: ease ratings after 5+ days away
+  if(g>=5){const dd=Math.min(.6,(g-4)*.04);IDS.forEach(k=>S.sk[k].lv=clamp(S.sk[k].lv-dd,1,12));save();toast('Welcome back after '+g+' days · ratings eased by '+Math.round(dd*100)+' (they recover fast)')}}
+ sess={mode:rv?'review':dy?'daily':on=='all'&&!cf.off?'train':'focus',mk,only:on,patt:rv||on=='all'||on=='mix'||on=='daily'?null:cf.patt||null,pool:mx,done:{},combo:0,bc:0,feed:[],fast:99,dur:rv?300:dy?60:cf.dur||1e9,un:!rv&&!dy&&!cf.dur,off:dy?9:rv?0:cf.off||0,rng:dy?mb(+ymd().replace(/-/g,'')):null,n:0,ok:0,pts:0,tsum:0,by:{},g:[],retry:[],recent:[],last:[],miss:[],lu:[],tl:[],el:0,
+  lv0:IDS.map(k=>S.sk[k].lv),ghost:(S.best[mk]||{}).g||null,gmax:(S.best[mk]||{}).pts||0};
+ scr='play';buf='';wl(1);
+ $('#app').innerHTML=`<div class=play><div><div class=hud><button class=sm onclick="act('Escape')" aria-label="Pause" style="margin:0;padding:6px 10px;font-size:13px">Pause <kbd>Esc</kbd></button><div><div class=mu>Time</div><div class=big id=t></div></div><div style="text-align:center"><div class=mu>Points</div><div class=big id=pt>0</div></div><div style="text-align:right"><div class=mu>Correct · acc · avg</div><div class=big><span id=n>0</span> <span class=mu id=acc>–</span></div></div></div>
+ <div class=bar><i id=tb style="background:var(--ac)"></i></div>
+ <div class=race><div class=lg><span>You <b id=yp>0</b></span><span id=gh></span><span>Ghost <b id=gp>–</b></span></div><div class=bar><i id=yb style="background:var(--ok)"></i></div><div class=bar style="height:3px;margin-top:-3px;background:none"><i id=gb style="background:var(--mu)"></i></div></div>
+ <div class=qc id=qc aria-live=polite><span class=pill id=sk></span><div class=q id=q></div><div class=bf id=bf></div><div class=qt><i id=qt></i></div></div><div class=mu id=ms role=status aria-live=polite style="text-align:center;min-height:48px"></div>
+ ${PAD}<div class="mu hint"><kbd>Enter</kbd> skip · <kbd>Esc</kbd> pause · <kbd>H</kbd> trick hint · answers submit themselves as you type</div></div>
+ <div class=side><div class=card><div class=mu>Correct in a row</div><div class=cmb id=cmb>0</div><div class=mu id=bcm>best 0</div></div>
+ <div class=card><div class=mu>By skill</div><div id=sb class=mu>–</div></div><div class=card><div class=mu>Last answers</div><div id=fd class=mu>–</div></div></div></div>`;
+ sess.cd=1;{const D0=sess.un?0:sess.dur;$('#t').textContent=Math.floor(D0/60)+':'+String(D0%60).padStart(2,'0')}$('#q').textContent='3';$('#sk').textContent='Get ready';let c3=3;
+ sess.go=()=>{clearInterval(sess.iv);sess.cd=0;sess.t0=performance.now();next();clearInterval(tick);tick=setInterval(upd,100)};
+ if(S.noCd)sess.go();else sess.iv=setInterval(()=>{c3--;if(c3>0)$('#q').textContent=c3;else sess.go()},650)}
+function next(){const nq=nextQ();if(!nq)return finish();sess.cur=nq;sess.qs=performance.now();buf='';sess.wrong=0;const p=sess.cur;
+ $('#q').innerHTML=(p.bonus?'<div class=gd style="font-size:16px">⚡ BONUS ×2</div>':'')+p.q;$('#bf').textContent='▏';
+ $('#sk').textContent=SK[p.sk].n+' · '+Math.round(S.sk[p.sk].lv*100)+(p.rt?' · ↻ review':'')+' · H for method';$('#sk').style.cssText='background:'+COL[p.sk]+'22;color:'+COL[p.sk];$('#qc').style.borderColor=COL[p.sk]+'88';
+ const q=$('#q');if(q.classList){q.classList.remove('in');void q.offsetWidth;q.classList.add('in')}}
+function flash(ok){const c=$('#qc');if(!c||!c.classList)return;c.classList.remove('okf','badf');void c.offsetWidth;c.classList.add(ok?'okf':'badf')}
+function upd(){if(sess.paused)return;if(sess.cur&&!sess.un&&performance.now()-sess.qs>3e4){pause();return toast('Auto-paused: no answer for 30s')}const qe=$('#qt');if(qe&&sess.cur){const rr=(performance.now()-sess.qs)/1000/T(sess.cur.sk,sess.cur.d);qe.style.width=Math.max(0,100*(1-rr/2))+'%';qe.style.background=rr<=.7?'var(--ok)':rr<=1.4?'var(--gd)':'var(--bad)'}sess.el=(performance.now()-sess.t0)/1000;const left=sess.un?1e9:Math.max(0,sess.dur-sess.el);if(left<=0)return finish();
+ const c=sess.un?Math.floor(sess.el):Math.ceil(left);$('#t').textContent=Math.floor(c/60)+':'+String(c%60).padStart(2,'0');document.title=$('#t').textContent+' · Mental Math';$('#t').style.color=!sess.un&&left<=10?'var(--bad)':'';$('#tb').style.width=100*left/sess.dur+'%';
+ $('#n').textContent=sess.ok;$('#acc').textContent=sess.n?Math.round(100*sess.ok/sess.n)+'%'+(sess.ok?' · '+(sess.tsum/sess.ok).toFixed(1)+'s':''):'–';$('#pt').textContent=sess.pts;
+ let gp=0;if(sess.ghost)for(const e of sess.ghost){if(e[0]<=sess.el)gp=e[1];else break}
+ const mx=Math.max(sess.gmax,sess.pts,1);$('#yp').textContent=sess.pts;$('#gp').textContent=sess.ghost?gp:'first run';$('#yb').style.width=100*sess.pts/mx+'%';$('#gb').style.width=100*gp/mx+'%';
+ $('#gh').innerHTML=sess.ghost?'👻 '+(sess.pts>=gp?'<span class=ok>+'+(sess.pts-gp)+' ahead</span>':'<span class=bad>'+(sess.pts-gp)+' behind</span>'):'you set the ghost'}
+function feedUp(ok,p,tm,r){sess.combo=ok?sess.combo+1:0;sess.bc=Math.max(sess.bc,sess.combo);if(ok&&[10,25,50,100].includes(sess.combo))toast('🔥 '+sess.combo+' in a row');if(ok)sess.fast=Math.min(sess.fast,tm);sess.feed.unshift([p.q,ok,tm,r]);sess.feed.length=Math.min(sess.feed.length,8);if(sess.feed.length>=8&&sess.n%8==0&&sess.feed.filter(f=>f[1]).length<=3)toast('Rough patch: accuracy first, slow down a touch');
+ const c=$('#cmb');if(!c)return;c.textContent=sess.combo;$('#bcm').textContent='best '+sess.bc;
+ $('#fd').innerHTML=sess.feed.map(f=>`<div class=fr><span>${f[0]}</span><span class="${f[1]?(f[3]<=.7?'ok':'mu'):'bad'}">${f[1]?f[2].toFixed(1)+'s':'✗'}</span></div>`).join('');
+ $('#sb').innerHTML=IDS.filter(k=>sess.by[k]).map(k=>{const b=sess.by[k];return`<div class=fr><span style="color:${COL[k]}">${SK[k].n}</span><span>${b[1]}/${b[0]}</span></div>`}).join('')}
+function pause(){if(scr!='play'||!sess||sess.paused||sess.cd)return;sess.paused=performance.now();$('#q').style.visibility='hidden';$('#qt').style.visibility='hidden';$('#bf').innerHTML='<span class=mu style="font-size:24px">Paused</span>';$('#ms').innerHTML='<b>Paused</b> · the clock is stopped · '+sess.pts+' pts · '+sess.ok+'/'+sess.n+' right<br><button class=p onclick="act(\'Enter\')">Resume</button><button onclick="act(\'Escape\')">End session</button>'}
+function resume(){const d=performance.now()-sess.paused;sess.t0+=d;sess.qs+=d;sess.paused=0;$('#q').style.visibility='';$('#qt').style.visibility='';$('#bf').textContent=buf+'▏';$('#ms').textContent=''}
+addEventListener('blur',()=>{if(!S.noBlur)pause()});document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else if(sess)wl(1)});
+let AC;function snd(ok){try{if(!ok&&navigator.vibrate)navigator.vibrate(40)}catch(e){}if(S.mute)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=ok?740+Math.min(sess?sess.combo:0,12)*22:170;o.type=ok?'sine':'square';g.gain.value=.03;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+(ok?.05:.12))}catch(e){}}
+const rank=r=>r<400?'Apprentice':r<600?'Sharp':r<800?'Elite':r<1000?'Prodigy':'Savant';
+function check(){if(buf==String(sess.cur.a)){$('#bf').innerHTML='<span class=ok>'+buf+'</span>';answer(true);next()}else{const bf=$('#bf'),L=buf.length>=String(sess.cur.a).length;bf.innerHTML=L?'<span class=bad>'+buf+'</span>':buf+'▏';if(L){sess.slips=(sess.slips||0)+1;sess.cur.tries=(sess.cur.tries||0)+1;sess.combo=0;sess.wrong=1;const cb=$('#cmb');if(cb)cb.textContent=0;snd(false);flash(false);bf.classList.remove('shake');void bf.offsetWidth;bf.classList.add('shake');const cur=sess.cur;setTimeout(()=>{if(sess&&sess.cur===cur&&sess.wrong){sess.wrong=0;buf='';$('#bf').textContent='▏'}},450)}}}
+const coach=e=>{const a=e.ok/e.n,ws=IDS.filter(k=>e.by[k]&&e.by[k][0]>=3).map(k=>[k,e.by[k][1]/e.by[k][0],S.sk[k].spd]),lo=ws.slice().sort((x,y)=>x[1]-y[1])[0],sl=ws.slice().sort((x,y)=>y[2]-x[2])[0];
+ if(a<.8)return'Accuracy was '+Math.round(a*100)+'%. Slow down a touch: a wrong answer costs more than a second of thinking.'+(lo?' Most misses: '+SK[lo[0]].n+'.':'');
+ if(a>.96&&sl&&sl[2]>1.15)return'Very clean session. You can afford to go faster, especially on '+SK[sl[0]].n+'.';
+ return lo&&lo[1]<.9?'Solid pace. Your weakest area this session was '+SK[lo[0]].n+' ('+Math.round(lo[1]*100)+'% right).':'Balanced session. Keep hitting the daily goal and your ratings will climb.'};
+const raceChart=(a,b,dur)=>{const w=640,h=140,mx=Math.max(1,...a.map(x=>x[1]),...(b||[]).map(x=>x[1])),pth=(A,c,wd)=>{if(!A||!A.length)return'';let d='M0 '+(h-6),py=0;A.forEach(([t,y])=>{const X=(t/dur*w).toFixed(1);d+=' L'+X+' '+(h-6-py/mx*(h-12)).toFixed(1)+' L'+X+' '+(h-6-y/mx*(h-12)).toFixed(1);py=y});return`<path d="${d}" fill=none style="stroke:${c}" stroke-width=${wd} stroke-linejoin=round />`};
+ return`<svg viewBox="0 0 ${w} ${h}" class=sp style="height:140px">${pth(b,'var(--mu)',1.5)}${pth(a,'var(--ok)',2.5)}</svg><div class=lg><span class=ok>Your points over time</span><span>${b?'Ghost (previous best)':'No ghost yet'}</span></div>`};
+function finish(){
+ clearInterval(tick);wl(0);const e=sess;sess=null;const rv=e.mode=='review',full=e.el>=e.dur-.5;if(e.n<(full||rv?1:5))return home();
+ const rec={t:Date.now(),m:e.mode,dur:full?e.dur:Math.max(1,Math.round(e.el)),n:e.n,ok:e.ok,pts:e.pts,tm:e.ok?+(e.tsum/e.ok).toFixed(2):0,by:e.by,lv:{},off:0};
+ IDS.forEach(k=>rec.lv[k]=+S.sk[k].lv.toFixed(2));S.sessions.push(rec);if(e.mode=='daily'){S.daily=S.daily||{};S.daily[ymd()]=Math.max(S.daily[ymd()]||0,e.pts)}
+ const prev=S.best[e.mk];let tag=prev?(e.pts>prev.pts?'🏅 New personal best!':'Best is '+prev.pts+' pts'):'First run saved as your ghost';
+ if(rv)tag='Review complete';else if(e.un)tag='Practice session · not counted for bests';else if(!full)tag='Ended early · not counted for bests';else if(!prev||e.pts>prev.pts)S.best[e.mk]={pts:e.pts,n:e.ok,g:e.g};
+  const c=ctx(),nu=MS.filter(m=>m[2](c)&&!S.ms.includes(m[0]));nu.forEach(m=>S.ms.push(m[0]));save();
+ const line=shareLine(rec),dl=IDS.map((k,i)=>[k,Math.round((S.sk[k].lv-e.lv0[i])*100)]).filter(x=>Math.abs(x[1])>=3);
+ scr='end';document.title='Results · Mental Math';if(tag.startsWith('🏅')||e.lu.length)burst();window.endAt=Date.now();window.lastLine=line;window.lastMode=e.mode;
+ $('#app').innerHTML=`<div style="text-align:center;margin:10px 0"><div style="font-size:60px;font-weight:800">${e.pts}<span class=mu style="font-size:20px"> pts</span></div><div>${e.ok} ✓ · ${Math.round(100*e.ok/e.n)}% accuracy · ${rec.tm}s avg · best streak ${e.bc} · fastest ${e.fast<99?e.fast.toFixed(1)+'s':'–'} · ${Math.round(100*(e.ft||0)/e.n)}% first try · ${e.slips||0} wrong tries</div></div><div class=gd style="text-align:center">${tag}</div>${e.lu.length?'<div class=gd>🎉 Level-up: '+e.lu.join(' · ')+'</div>':''}
+ <p><button class=p onclick="act('Enter')">Again <kbd>Enter</kbd></button><button onclick="copy(window.lastLine)">Copy result <kbd>C</kbd></button>${Object.keys(S.weak).length?'<button onclick="act(\'r\')">Review missed <kbd>R</kbd></button>':''}<button onclick="drill(weakest())">Drill weakest <kbd>W</kbd></button><button onclick="act('p')">Progress <kbd>P</kbd></button><button onclick="act('Escape')">Home <kbd>Esc</kbd></button></p>
+ <div class=cols><div><h2>Coach</h2><div class=card>${coach(e)}</div>
+ <h2>Race against your ghost</h2><div class=card>${raceChart(e.g,e.ghost,e.un?e.el:e.dur)}</div>
+ </div><div><h2>By skill</h2><div class=card><table><tr><th>Skill<th>Qs<th>Accuracy<th>Avg time<th>Rating</tr>${IDS.map((k,i)=>{const b=e.by[k]||[0,0,0],d=Math.round((S.sk[k].lv-e.lv0[i])*100);return`<tr><td style="color:${COL[k]}">${SK[k].n}<td>${b[0]}<td>${b[0]?Math.round(100*b[1]/b[0])+'%':'–'}<td>${b[1]?(b[2]/b[1]).toFixed(1)+'s':'–'}<td>${Math.round(S.sk[k].lv*100)} <span class="${d>=0?'ok':'bad'}">${d>=0?'▲':'▼'}${Math.abs(d)}</span></tr>`}).join('')}</table></div>
+ ${nu.length?'<h2>Unlocked</h2>'+nu.map(m=>`<span class="ch on">🏆 ${m[1]}</span>`).join(''):''}
+ ${e.tl.length?'<h2>Slowest answers (candidates for a trick)</h2><div class=mu>'+e.tl.sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>x[0]+' · '+x[1].toFixed(1)+'s'+(x[2]?'<br><span style="opacity:.7">🧠 '+x[2]+'</span>':'')).join('<br>')+'</div>':''}
+ ${e.miss.length?'<h2>Missed (queued for spaced review)</h2><div class=mu>'+e.miss.join('<br>')+'</div>':''}
+ <h2>Share</h2><div class=card style="font-family:ui-monospace,monospace;font-size:13px">${line}</div></div></div>
+ `}
+function shareLine(r){const nm=r.m=='review'?'Review':r.m=='daily'?'Daily challenge':(r.m=='focus'?(SK[(S.cfg||{}).only]||{n:'Focus'}).n:'Train')+' '+r.dur+'s';
+ return`🧮 Mental Math ${ymd(r.t)} · ${nm} · ${r.ok}✓ ${Math.round(100*r.ok/Math.max(1,r.n))}% · ${r.pts} pts · ${r.tm}s avg · 🔥${streak()}d · ${rank(Math.round(avgLv()*100))} ${Math.round(avgLv()*100)}`}
+/* ---------- stats ---------- */
+const days=()=>new Set(S.sessions.map(s=>ymd(s.t)));
+function streak(){const D=days(),n=new Date();n.setHours(12,0,0,0);let t=n.getTime(),c=0,since=9;if(!D.has(ymd(t)))t-=864e5;for(;;){if(D.has(ymd(t))){c++;since++;t-=864e5}else if(since>=7&&D.has(ymd(t-864e5))){since=0;t-=864e5}else break}return c}
+function longest(){const d=[...days()].map(s=>Math.round(new Date(s+'T12:00')/864e5)).sort((a,b)=>a-b);let b=0,c=0;d.forEach((x,i)=>{c=i&&x==d[i-1]+1?c+1:1;b=Math.max(b,c)});return b}
+function ctx(){const L=IDS.map(k=>S.sk[k].lv);return{ls:longest(),n:S.sessions.reduce((a,s)=>a+s.n,0),mx:Math.max(...L),mn:Math.min(...L),perf:S.sessions.some(s=>s.n>=30&&s.ok==s.n),dy:Object.keys(S.daily||{}).length}}
+const MS=[['s3','3-day streak',c=>c.ls>=3],['s7','7-day streak',c=>c.ls>=7],['s14','14-day streak',c=>c.ls>=14],['s30','30-day streak',c=>c.ls>=30],
+['a1','100 answers',c=>c.n>=100],['a2','1,000 answers',c=>c.n>=1e3],['a3','5,000 answers',c=>c.n>=5e3],['a4','20,000 answers',c=>c.n>=2e4],
+['l6','A skill at rating 600',c=>c.mx>=6],['l8','A skill at rating 800',c=>c.mx>=8],['l10','A skill at rating 1000',c=>c.mx>=10],['m6','Every skill ≥ 600',c=>c.mn>=6],
+['d1','First Daily challenge',c=>c.dy>=1],['d7','7 Daily challenges',c=>c.dy>=7],['d30','30 Daily challenges',c=>c.dy>=30],
+['pf','Perfect session (30+ answers)',c=>c.perf]];
+function week(a,b){const x=S.sessions.filter(s=>s.t>=Date.now()-b*864e5&&s.t<Date.now()-a*864e5),n=x.reduce((q,s)=>q+s.n,0),ok=x.reduce((q,s)=>q+s.ok,0),pc=x.reduce((q,s)=>q+s.pts*60/s.dur,0);
+ return{s:x.length,n,acc:n?100*ok/n:0,pace:x.length?pc/x.length:0}}
+function lvAgo(k,days){const old=S.sessions.filter(s=>s.t<Date.now()-days*864e5&&s.lv&&s.lv[k]!=null).pop();return old?old.lv[k]:SK[k].s}
+const bars=(v,col,lb)=>{const w=640,h=110,mx=Math.max(1,...v),bw=w/v.length;return`<svg viewBox="0 0 ${w} ${h+16}" class=sp style="height:130px">${v.map((y,i)=>`<rect x="${i*bw+3}" y="${h-y/mx*h}" width="${bw-6}" height="${Math.max(1,y/mx*h)}" rx=3 fill="${col}"><title>${lb[i]}: ${y}</title></rect><text x="${i*bw+bw/2}" y="${h+12}" font-size=10 text-anchor=middle style="fill:var(--mu)">${lb[i].slice(8)}</text>`).join('')}</svg>`};
+function variant(w){let p=null;for(let i=0;i<30;i++){const c=gen(w.sk,w.d,Math.random);if(c.pt==w.pt&&qk(c.q)!=qk(w.q)){p=c;break}}return p?{...p,rt:1,wk:w.q}:{...w,rt:1}}
+const spark=(v,col,w=420,h=90)=>{if(v.length<2)return'<div class=mu>Needs 2+ sessions</div>';const mn=Math.min(...v),mx=Math.max(...v),sp=mx-mn||1,bi=v.indexOf(mx);
+ const P=v.map((y,i)=>[8+i*(w-16)/(v.length-1),h-8-(y-mn)/sp*(h-16)]);
+ return`<svg viewBox="0 0 ${w} ${h}" class=sp><polyline fill=none stroke="${col}" stroke-width=2 points="${P.map(p=>p.join(',')).join(' ')}"/>${P.map((p,i)=>`<circle cx=${p[0]} cy=${p[1]} r=${i==bi?4.5:2.2} fill="${i==bi?'#ffcf5c':col}"><title>${Math.round(v[i])}</title></circle>`).join('')}</svg><div class=mu>low ${Math.round(mn)} · best ${Math.round(mx)} (gold)</div>`};
+/* ---------- screens ---------- */
+function zeta(ids,d0){const t=ids.map(k=>T(k,d0[k])*Math.max(.4,S.sk[k].spd)),acc=ids.reduce((a,k)=>a+S.sk[k].acc,0)/ids.length;return Math.round(120/(t.reduce((a,b)=>a+b)/t.length)*acc)}   // estimate: 120s / avg seconds per question x accuracy
+const zDef=()=>zeta(['add','sub','mul','div'],{add:4.5,sub:4.5,mul:5,div:5}),zMD=()=>zeta(['mul','div'],{mul:5,div:5});
+function weekStrip(){const D=days();return'<div class=wk>'+[6,5,4,3,2,1,0].map(i=>{const t=new Date(Date.now()-i*864e5);return`<b class="${D.has(ymd(t))?'on':''}" title="${ymd(t)}">${'SMTWTFS'[t.getDay()]}</b>`}).join('')+'</div>'}
+function radar(){const n=IDS.length,pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[110+88*v*Math.cos(a),105+88*v*Math.sin(a)]},ring=f=>IDS.map((k,i)=>pt(i,f).join(',')).join(' ');
+ return`<svg viewBox="0 -6 220 226" class=rd>${[.25,.5,.75,1].map(f=>`<polygon points="${ring(f)}" fill=none style="stroke:var(--ln)"/>`).join('')}<polygon points="${IDS.map((k,i)=>pt(i,S.sk[k].lv/12).join(',')).join(' ')}" style="fill:color-mix(in srgb,var(--ac) 22%,transparent);stroke:var(--ac)" stroke-width=2 />${IDS.map((k,i)=>{const[x,y]=pt(i,1.17);return`<text x=${x} y=${y} fill="${COL[k]}" font-size=11 font-weight=600 text-anchor=middle dominant-baseline=middle>${SH[k]}</text>`}).join('')}</svg>`}
+function home(){document.title='Mental Math Trainer';applyTheme();scr='home';const st=streak(),td=S.sessions.filter(s=>ymd(s.t)==ymd()&&s.dur>=120).length,goal=S.goal||2,r=Math.round(avgLv()*100),C=2*Math.PI*30,due=Object.keys(S.weak).length,cf=Object.assign({dur:120,only:'all'},S.cfg),bst=S.best[mkOf(cf)],
+ foc=IDS.slice().sort((a,b)=>strength(b)-strength(a)).slice(0,2),fm=d=>!d?'Untimed':d<120?d+'s':d/60+' min',
+ cd=d=>`<button class="${cf.dur==d?'sel':''}" onclick="cfg('dur',${d})">${fm(d)}</button>`,co=(v,l)=>`<button class="${cf.only==v?'sel':''}" onclick="cfg('only','${v}')">${l}</button>`;
+ const SL={add:'Add',sub:'Subtract',mul:'Multiply',div:'Divide',sq:'Squares',pct:'Percent',ops:'Multi-step'},df=(v,l)=>`<button class="${(cf.off||0)==v?'sel':''}" onclick="cfg('off',${v})">${l}</button>`;
+ $('#app').innerHTML=`<div class=hd><h1>Mental Math</h1><span class=mu>🔥 ${st}-day streak · ${rank(r)} ${r}</span></div><div class=mu id=sy role=button tabindex=0 aria-label="Sync status" onclick="syncTap()" style="text-align:right;cursor:pointer">${syncLine()}</div>
+ <div class="g g2" style="margin-top:14px"><div class=card>
+  <button class="p go" onclick="start()">▶ Start ${fm(cf.dur)} · ${cf.only=='all'?'all skills':cf.only=='mix'?'custom mix':SK[cf.only].n} <kbd>Enter</kbd></button>
+  <div class=row style="margin-top:14px"><div class=mu>Length</div><div>${[30,60,120,300,600,0].map(cd).join('')}<button onclick="customLen()">Custom…</button></div></div>
+  <div class=row><div class=mu>Skills</div><div>${co('all','All')}${co('mix','Custom mix')}${IDS.map(k=>co(k,SL[k])).join('')}</div></div>
+  ${cf.only=='mix'?`<div class=row><div class=mu>Mix</div><div>${IDS.map(k=>`<button class="${(cf.mix||[]).includes(k)?'sel':''}" onclick="mixT('${k}')">${SL[k]}</button>`).join('')}</div></div>`:''}
+  <div class=row><div class=mu>Difficulty</div><div>${[[-1.5,'Easier'],[0,'Auto'],[1.5,'Harder'],[3,'Brutal']].map(x=>df(x[0],x[1])).join('')}${cf.off?'<span class=mu> ratings frozen</span>':''}</div></div>
+  <div class=mu><kbd>1</kbd>–<kbd>6</kbd> length · <kbd>←</kbd> <kbd>→</kbd> skill · <kbd>Enter</kbd> start</div>
+  <div class=mu>${bst?'Beat your best: <b>'+bst.pts+' pts</b>':'Your first run here sets the ghost'}${cf.only=='all'&&S.sessions.length?' · Extra focus: '+foc.map(k=>`<span style="color:${COL[k]}">${SK[k].n}</span>`).join(' + '):''}</div>
+  <div style="margin-top:10px"><button onclick="start('daily')">🗓 Daily challenge · 60s <kbd>Y</kbd>${S.daily&&S.daily[ymd()]?' · today '+S.daily[ymd()]:''}</button>${S.sessions.length?`<button onclick="drill('${foc[0]}')">Drill weakest: ${SK[foc[0]].n}</button>`:''}${due?`<button onclick="start('review')">Review ${Math.min(due,20)} missed <kbd>R</kbd></button>`:''}${due?`<button onclick="nb()">📓 Notebook <kbd>N</kbd></button>`:''}</div>
+ </div>
+ <div class=card style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:14px"><svg width=72 height=72 viewBox="0 0 70 70"><circle cx=35 cy=35 r=30 fill=none style="stroke:var(--ln)" stroke-width=7 /><circle cx=35 cy=35 r=30 fill=none stroke="#4cd98a" stroke-width=7 stroke-linecap=round stroke-dasharray="${C*Math.min(1,td/goal)} ${C}" transform="rotate(-90 35 35)"/><text x=35 y=40 text-anchor=middle style="fill:var(--tx)" font-size=15 font-weight=700>${td}/${goal}</text></svg><div class=mu>Daily goal: ${goal} sessions of 2+ min<br>${td>=goal?'Done. Anything more is bonus.':'Keeps your streak alive'}<div style="margin-top:6px">${weekStrip()}</div></div></div>
+ <div class=mu>${(m=>m?'Next unlock: '+m[1]:'Every milestone unlocked')(MS.find(m=>!S.ms.includes(m[0])))}</div>${S.sessions.length?(()=>{const a=week(0,7),b=week(7,14),d=a.acc-b.acc;return`<div class=mu>This week: ${a.s} sessions · ${a.n} answers · ${Math.round(a.acc)}% accurate${b.s?` (<span class="${d>=0?'ok':'bad'}">${d>=0?'▲':'▼'}${Math.abs(Math.round(d))}</span> vs last week)`:''}</div>`})():''}<div class=mu>Skill radar</div>${radar()}</div></div>
+ ${S.sessions.length?'':'<div class=card style="margin-top:14px"><b>First time?</b><div class=mu>Answers submit themselves as you type, no Enter needed. Enter skips a question. Ratings adapt to you within about 3 sessions. Press ? any time for every shortcut.</div></div>'}
+ <h2>Your skills · click one to drill it</h2><div class="g g4">${IDS.map(k=>`<div class=card role=button tabindex=0 aria-label="Drill ${SK[k].n}" title="Click to drill ${SK[k].n}" onclick="drill('${k}')" style="border-top:3px solid ${COL[k]};cursor:pointer"><div class=mu>${SK[k].n}</div><div class=big>${Math.round(S.sk[k].lv*100)}</div><div class=bar title="progress to the next 100"><i style="width:${(S.sk[k].lv%1)*100}%;background:${COL[k]}"></i></div><div class=mu>${S.sk[k].n?Math.round(S.sk[k].acc*100)+'% acc · '+S.sk[k].spd.toFixed(2)+'×':'new'}${S.sk[k].pk&&S.sk[k].pk-S.sk[k].lv>.15?' · peak '+Math.round(S.sk[k].pk*100):''}</div></div>`).join('')+`<div class=card style="border-top:3px solid var(--mu)"><div class=mu>Zetamac est.</div><div class=big>${S.sessions.length?zDef():'–'}</div><div class=mu>${S.sessions.length?'× ÷ only: '+zMD():'after 1st session'}</div></div>`}</div>
+ <details class=card style="margin-top:22px"><summary class=mu style="cursor:pointer">Settings · view, session, data</summary><div class=row style="margin-top:12px"><div class=mu>View</div><div><button onclick="act('p')"><kbd>P</kbd> Progress</button><button onclick="act('l')"><kbd>L</kbd> Light/dark</button><button onclick="act('a')"><kbd>A</kbd> Accent</button><button onclick="act('f')"><kbd>F</kbd> Question font</button><button onclick="act('z')"><kbd>Z</kbd> Focus layout</button><button onclick="act('k')"><kbd>K</kbd> Keypad</button><button onclick="act('b')"><kbd>B</kbd> Auto-pause</button></div></div>
+ <div class=row><div class=mu>Session</div><div><button onclick="act('g')"><kbd>G</kbd> Daily goal: ${goal}</button><button onclick="act('c')"><kbd>C</kbd> Countdown ${S.noCd?'off':'on'}</button><button onclick="act('m')"><kbd>M</kbd> Sound</button><button onclick="calib()">Set ratings</button></div></div>
+ <div class=row><div class=mu>Data</div><div><button onclick="act('x')"><kbd>X</kbd> Export backup</button><button onclick="act('e')"><kbd>E</kbd> Export CSV</button><button onclick="act('i')"><kbd>I</kbd> Import backup</button><button onclick="syncSetup()">☁ Sync key</button><button onclick="ip?(ip.prompt(),ip=null):toast('Use your browser menu → Add to Home Screen')">📲 Install app</button><button onclick="act('?')"><kbd>?</kbd> Help</button></div></div></details>
+ ${st&&!days().has(ymd())?'<div class=gd style="margin-top:10px">Play today to keep your '+st+'-day streak.</div>':''}
+ ${S.sessions.length&&!syncKey()&&Date.now()-S.lastExport>12*864e5?'<div class=gd>No recent backup. Press X to download one.</div>':''}<div class=mu style="text-align:center;margin:26px 0 4px;opacity:.6">Mental Math ${VER}</div>`}
+function prog(){scr='prog';const c=ctx(),tr=S.sessions.filter(s=>s.m=='train'&&s.dur==120),L=S.sessions.slice(-40),a=week(0,7),b=week(7,14),dlt=(x,y,u='')=>`<span class="${x>=y?'ok':'bad'}">${x>=y?'▲':'▼'}${Math.abs(Math.round(x-y))}${u}</span>`;
+ const wk=IDS.slice().sort((x,y)=>strength(y)-strength(x)).slice(0,2),dl7=IDS.map(k=>[k,(S.sk[k].lv-lvAgo(k,7))*100]).sort((x,y)=>y[1]-x[1]),ins=S.sessions.length?`📈 Biggest 7-day gain: <b>${SK[dl7[0][0]].n}</b> (${dl7[0][1]>=0?'+':''}${Math.round(dl7[0][1])}) · 🎯 Weakest right now: <b>${SK[wk[0]].n}</b> · Rank: <b>${rank(Math.round(avgLv()*100))}</b>`:'Play a session to see insights.',cnt={};S.sessions.forEach(s=>cnt[ymd(s.t)]=(cnt[ymd(s.t)]||0)+1);
+ const first=new Date(Date.now()-83*864e5),cells=Array(first.getDay()).fill('<b style="background:none"></b>');
+ for(let i=83;i>=0;i--){const d=ymd(Date.now()-i*864e5),n=cnt[d]||0;cells.push(`<b title="${d}: ${n}" ${n?`style="background:rgba(76,217,138,${Math.min(1,.3+n*.25)})"`:''}></b>`)}
+ $('#app').innerHTML=`<div class=hd><h1>Progress</h1><button onclick="act('Escape')"><kbd>Esc</kbd> Back</button></div>
+ <div class="g g3"><div class=card><div class=mu>Streak</div><div class=big>🔥${streak()}</div><div class=mu>longest ${c.ls}</div></div>
+ <div class=card><div class=mu>Sessions</div><div class=big>${S.sessions.length}</div></div><div class=card><div class=mu>Answers</div><div class=big>${c.n}</div></div>
+ <div class=card><div class=mu>Rating</div><div class=big>${Math.round(avgLv()*100)}</div></div><div class=card><div class=mu>Zetamac est.</div><div class=big>${S.sessions.length?zDef():'–'}</div><div class=mu>× ÷ only ${S.sessions.length?zMD():'–'}</div></div>
+ <div class=card><div class=mu>Best Train</div><div class=big>${Math.max(0,...tr.map(s=>s.pts))}</div><div class=mu>pts · ${Math.max(0,...tr.map(s=>s.ok))} ✓ best</div></div></div>
+ <div class="g g2"><div><h2>Pace (pts/min, last 40)</h2><div class=card>${spark(L.map(s=>s.pts*60/s.dur),'#6ea8ff')}</div></div>
+ <div><h2>Overall rating</h2><div class=card>${spark(L.map(s=>IDS.reduce((q,k)=>q+(s.lv[k]||SK[k].s),0)/IDS.length*100),'#4cd98a')}</div></div></div>
+ <div class=card style="margin-top:14px">${ins}</div>
+ <h2>Weakness map</h2><div class=card><table><tr><th>Skill<th>Rating<th><th>Accuracy<th>Speed vs target<th>7-day<th>Review queue</tr>
+ ${IDS.map(k=>{const s=S.sk[k],d=(s.lv-lvAgo(k,7))*100,wq=Object.values(S.weak).filter(w=>w.sk==k).length;
+ return`<tr><td><span style="color:${COL[k]}">${wk.includes(k)&&S.sessions.length?'⚠ ':''}${SK[k].n}</span><td><b>${Math.round(s.lv*100)}</b><td style="width:22%"><div class=bar><i style="width:${s.lv/12*100}%;background:${COL[k]}"></i></div><td>${Math.round(s.acc*100)}%<td>${s.n?s.spd.toFixed(2)+'×':'–'}<td class="${d>=0?'ok':'bad'}">${d>=0?'+':''}${Math.round(d)}<td>${wq}</tr>`}).join('')}</table>
+ <div class=mu>Speed 1.00× = on target; lower is faster. ⚠ marks the two weakest skills (these get extra practice).</div></div>
+${(()=>{const L=S.sessions.slice(-10).reverse();let bp=0;S.sessions.forEach(x=>{if(x.dur>=120)bp=Math.max(bp,x.pts)});return`<h2>Recent sessions</h2><div class=card><table><tr><th>When<th>Pts<th>✓<th>Acc<th>Avg<th>vs prev</tr>${L.map((x,i)=>{const pv=S.sessions[S.sessions.length-2-i],d=pv?x.pts*60/x.dur-pv.pts*60/pv.dur:0;return`<tr><td>${ymd(x.t).slice(5)} ${new Date(x.t).toTimeString().slice(0,5)}<td>${x.pts}${x.pts==bp&&x.dur>=120?' 🏅':''}<td>${x.ok}<td>${Math.round(100*x.ok/Math.max(1,x.n))}%<td>${x.tm}s<td class="${d>=0?'ok':'bad'}">${pv?(d>=0?'+':'')+Math.round(d)+'/min':'–'}</tr>`}).join('')}</table></div>`})()}
+ <h2>Pattern analytics: what actually slows you down</h2><div class=card>${(()=>{const P=Object.entries(S.pat).filter(([k,o])=>o.n>=8).map(([k,o])=>({k,n:o.n,acc:100*o.ok/o.n,sp:o.ok?o.r/o.ok:0}));
+ if(P.length<3)return'<span class=mu>Patterns appear after ~8 attempts each (carries, borrows, digit sizes, tricks).</span>';const row=x=>`<tr><td>${x.k}<td>${x.n}<td>${Math.round(x.acc)}%<td>${x.sp.toFixed(2)}×<td><button onclick="drillPat('${x.k}')">Drill</button></tr>`;
+ return'<table><tr><th>Slowest<th>Tries<th>Acc<th>Speed</tr>'+P.slice().sort((a,b)=>b.sp-a.sp).slice(0,5).map(row).join('')+'<tr><th>Most missed<th><th><th></tr>'+P.slice().sort((a,b)=>a.acc-b.acc).slice(0,5).map(row).join('')+'</table>'})()}</div>
+ <h2>Rating trend per skill</h2><div class="g g5">${IDS.map((k,i)=>`<div class=card><b>${SK[k].n}</b> ${spark(L.map(s=>(s.lv&&s.lv[k]!=null?s.lv[k]:SK[k].s)*100),COL[k],420,70)}</div>`).join('')}</div>
+ <h2>This week vs last week</h2><div class="card mu">Sessions ${a.s} ${dlt(a.s,b.s)} · Answers ${a.n} ${dlt(a.n,b.n)} · Accuracy ${Math.round(a.acc)}% ${dlt(a.acc,b.acc,'%')} · Pace ${Math.round(a.pace)} ${dlt(a.pace,b.pace)}</div>
+ <div class="g g2"><div><h2>Accuracy % (last 40 sessions)</h2><div class=card>${spark(L.map(s=>100*s.ok/Math.max(1,s.n)),'#ff9f5a')}</div></div>
+ <div><h2>Answers per day (last 14)</h2><div class=card>${(()=>{const D=[...Array(14)].map((_,i)=>ymd(Date.now()-(13-i)*864e5));return bars(D.map(d=>S.sessions.filter(s=>ymd(s.t)==d).reduce((a,s)=>a+s.n,0)),'#6ea8ff',D)})()}</div></div></div>
+ <h2>Last 12 weeks</h2><div class=hm>${cells.join('')}</div>
+ <h2>Milestones</h2>${MS.map(m=>`<span class="ch ${S.ms.includes(m[0])?'on':''}">${S.ms.includes(m[0])?'🏆':'🔒'} ${m[1]}</span>`).join('')}`}
+/* ---------- io + input ---------- */
+function help(){const h=$('#help');h.innerHTML=`<div><b>How it works</b><br>Each skill has a rating (×100). Every answer scores speed + accuracy against a target time; ratings drift to where you're ~72% “perfect”.<br>Sessions open with a 3-2-1 countdown (<kbd>Enter</kbd> skips it, <kbd>C</kbd> on home turns it off). <kbd>H</kbd> shows the worked method for any question (hinted answers earn half points and don't move your rating); every miss also shows its worked solution. <kbd>Y</kbd> plays today's Daily challenge (60s, same questions for everyone, ratings untouched), <kbd>G</kbd> changes the daily goal, <kbd>D</kbd> cycles difficulty. Fresh questions avoid anything from your last ~240 answers, even across sessions (a+b and b+a count as the same). Missed items return on purpose in 4 questions, then after 10 min and 1 day (later ones use fresh numbers of the same type).<br>⚡ bonus = harder, ×2 points. Zetamac est. = 120s ÷ your avg time × accuracy.<br><br><kbd>Enter</kbd> train/skip · <kbd>Esc</kbd> pause/home · <kbd>P</kbd> progress · <kbd>C</kbd> copy result · <kbd>X</kbd>/<kbd>I</kbd> export/import · <kbd>M</kbd> sound · <kbd>E</kbd> CSV of your sessions · <kbd>L</kbd> light/dark · <kbd>A</kbd> accent colour · <kbd>F</kbd> question font · <kbd>Z</kbd> focus layout · <kbd>K</kbd> on-screen keypad · <kbd>B</kbd> auto-pause on window switch · <kbd>N</kbd> notebook of misses · <kbd>R</kbd> review missed · <kbd>W</kbd> (end screen) drill weakest skill · “Drill” buttons in Progress practise one slow pattern<br>On the home screen: <kbd>1</kbd>–<kbd>6</kbd> sets length (30s to 10 min, or untimed practice), <kbd>←</kbd>/<kbd>→</kbd> picks a skill. Each setting keeps its own best and ghost.<br><span class=mu>Press any key or tap to close</span></div>`;h.onclick=()=>{h.style.display='none'};h.style.display='grid'}
+function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const x=document.createElement('textarea');x.value=t;document.body.append(x);x.select();document.execCommand('copy');x.remove()}).then(()=>toast('Copied!'))}
+function csv(){if(!S.sessions.length)return toast('No sessions yet');const r=['date,mode,seconds,answers,correct,accuracy_pct,points,avg_seconds'].concat(S.sessions.map(x=>[new Date(x.t).toISOString(),x.m,x.dur,x.n,x.ok,Math.round(100*x.ok/Math.max(1,x.n)),x.pts,x.tm].join(',')));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.join('\n')],{type:'text/csv'}));a.download='mentalmath-sessions-'+ymd()+'.csv';a.click();toast('CSV downloaded')}
+function exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='mentalmath-backup-'+ymd()+'.json';a.click();S.lastExport=Date.now();save();toast('Backup downloaded')}
+$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.sk||!Array.isArray(o.sessions))throw 0;
+ if(!confirm('Replace current data ('+S.sessions.length+' sessions) with backup ('+o.sessions.length+' sessions)?'))return;
+ const b=fresh();S={...b,...o,sk:{...b.sk,...o.sk}};S.pat=S.pat||{};save();toast('Imported');scr=='prog'?prog():home()}catch(x){toast('Not a valid backup file')}e.target.value=''};r.readAsText(f)};
+function act(k){
+ if(scr=='play'){if(sess.cd){if(k=='Escape'){clearInterval(sess.iv);sess=null;home()}else if(k=='Enter'||k==' ')sess.go();return}if(sess.paused){if(k=='Enter')resume();else if(k=='Escape')finish();return}if(/^\d$/.test(k)){if(sess.wrong){sess.wrong=0;buf=''}buf+=k;try{navigator.vibrate&&matchMedia('(pointer:coarse)').matches&&navigator.vibrate(5)}catch(e){}check()}else if(k=='Backspace'){if(sess.wrong){sess.wrong=0;buf=''}else buf=buf.slice(0,-1);$('#bf').textContent=buf+'▏'}
+  else if(k=='Enter'||k==' '){answer(false);next()}else if(k=='Escape')pause();else if(k=='h'||k=='H'){sess.cur.hinted=1;$('#ms').innerHTML='<span class=mu>'+(sess.cur.tip?'💡 '+sess.cur.tip+'<br>':'')+'🧠 '+how(sess.cur)+' · hint used: half points, no rating change</span>'}return}
+ k=k.toLowerCase();
+ if($('#help').style.display=='grid'){$('#help').style.display='none';return}
+ if(scr=='home'){if(k=='y')return start('daily');if(k=='n'&&Object.keys(S.weak).length)return nb();if(k=='d'){const o=[-1.5,0,1.5,3],i=(o.indexOf((S.cfg&&S.cfg.off)||0)+1)%4;return cfg('off',o[i])}if(k=='g'){S.goal=({1:2,2:3,3:5,5:1})[S.goal||2];save();return home()}if(k=='c'){S.noCd=!S.noCd;save();home();return toast('Countdown '+(S.noCd?'off':'on'))}if(k>='1'&&k<='6')return cfg('dur',[30,60,120,300,600,0][k-1]);if(k=='arrowleft'||k=='arrowright'){const o=['all',...IDS],c=Object.assign({only:'all'},S.cfg).only,i=(o.indexOf(c)+(k=='arrowright'?1:o.length-1))%o.length;return cfg('only',o[i])}}
+ if(k=='?')return help();
+ if(k=='k'){S.pad=!(S.pad!=null?S.pad:matchMedia('(pointer:coarse)').matches);save();applyTheme();return toast('On-screen keypad '+(S.pad?'on':'off'))}if(k=='b'){S.noBlur=!S.noBlur;save();return toast('Auto-pause when you switch windows: '+(S.noBlur?'off':'on'))}if(k=='z'){S.zen=!S.zen;save();applyTheme();return toast('Focus layout '+(S.zen?'on: no side panel or race bar':'off'))}if(k=='m'){S.mute=!S.mute;save();return toast('Sound '+(S.mute?'off':'on'))}
+ if(k=='f'){S.font=({sans:'mono',mono:'round',round:'sans'})[S.font||'sans'];save();applyTheme();return toast('Question font: '+S.font)}
+ if(k=='a'){const o=Object.keys(ACC),i=(o.indexOf(S.acc||'blue')+1)%o.length;S.acc=o[i];save();applyTheme();return toast('Accent: '+S.acc)}
+ if(k=='l'){S.theme=document.documentElement.dataset.theme=='light'?'dark':'light';save();return applyTheme()}
+ if((scr=='home'||scr=='end'||scr=='nb')&&k=='r'&&Object.keys(S.weak).length)return start('review');
+ if(k=='e')return csv();
+ if(k=='x')return exp();if(k=='i')return $('#imp').click();
+ if(scr=='end'){if(Date.now()-window.endAt<800)return;if(k=='c')return copy(window.lastLine);if(k=='w')return drill(weakest());if(k=='enter')return start();}
+ if(scr=='prog'||scr=='nb'){if(k=='escape')home();return}
+ if(k=='enter'||k=='t')start();else if(k=='p')prog();else if(k=='escape')home()}
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;{const r=document.activeElement;if(scr!='play'&&r&&r.getAttribute&&r.getAttribute('role')=='button'&&(e.key=='Enter'||e.key==' ')){e.preventDefault();r.click();return}}{const a=document.activeElement;if(scr!='play'&&a&&/^(BUTTON|SUMMARY|INPUT)$/.test(a.tagName)&&(e.key==' '||e.key=='Enter'||e.key=='Tab'))return}if(['Enter',' ','Backspace','Escape','Tab','ArrowLeft','ArrowRight'].includes(e.key)||/^\d$/.test(e.key)||e.key.length==1){if(['Enter',' ','Backspace'].includes(e.key)||scr=='play')e.preventDefault();if(scr=='play')document.activeElement&&document.activeElement.blur();act(e.key)}});
+['beforeunload','pagehide'].forEach(ev=>addEventListener(ev,()=>{if(sess&&sess.n)finish()}));
+/* ---------- cloud sync (Netlify Function + Blobs) ---------- */
+const SYK='mmTrainer.sync',syncKey=()=>{try{return localStorage[SYK]||''}catch(e){return''}};
+let synced=false,syncMsg='',pushT,busy=0,ip;
+const syncLine=()=>!syncKey()?'☁ Sync off · tap to set up':syncMsg||'☁ Syncing…',showSync=()=>{const e=$('#sy');if(e){e.textContent=syncLine();e.style.color=/Wrong/.test(e.textContent)?'var(--bad)':''}};
+function mergeS(a,b){const nw=(a.u||0)>=(b.u||0)?a:b,od=nw===a?b:a,m={...od,...nw},seen=new Set(),U=(x,y)=>[...new Set([...Object.keys(x||{}),...Object.keys(y||{})])];
+ m.sessions=[...a.sessions,...b.sessions].filter(x=>!seen.has(x.t)&&seen.add(x.t)).sort((x,y)=>x.t-y.t);
+ m.ms=[...new Set([...(a.ms||[]),...(b.ms||[])])];
+ m.best={};U(a.best,b.best).forEach(k=>{const x=(a.best||{})[k],y=(b.best||{})[k];m.best[k]=!y||(x&&x.pts>=y.pts)?x:y});
+ m.daily={};U(a.daily,b.daily).forEach(k=>m.daily[k]=Math.max((a.daily||{})[k]||0,(b.daily||{})[k]||0));
+ m.lastExport=Math.max(a.lastExport||0,b.lastExport||0);m.u=Math.max(a.u||0,b.u||0);['pad','theme','acc','font','zen','mute','noBlur','noCd'].forEach(k=>m[k]=a[k]);return m}
+async function api(m,b){const r=await fetch('/api/sync',{method:m,headers:{'x-sync-key':syncKey(),'content-type':'application/json'},body:b?JSON.stringify(b):undefined});if(r.status==401)throw new Error('key');if(!r.ok)throw new Error('http'+r.status);return r.json()}
+const stamp=()=>'☁ Synced '+new Date().toTimeString().slice(0,5);
+async function push(){if(!syncKey()||!synced||sess)return;try{await api('PUT',S);syncMsg=stamp()}catch(e){syncMsg=e.message=='key'?'☁ Wrong sync key':'☁ Offline · will retry'}showSync()}
+function pushSoon(){if(!syncKey()||!synced)return;clearTimeout(pushT);pushT=setTimeout(push,1200)}
+async function pull(){if(!syncKey()||sess||busy)return;busy=1;try{const r=(await api('GET')).data;let ch=0;
+ if(r&&r.sk&&Array.isArray(r.sessions)){ch=(r.u||0)>(S.u||0);const n=S.sessions.length;S=mergeS(S,r);S.pat=S.pat||{};try{localStorage[KEY]=JSON.stringify(S)}catch(e){}synced=true;
+  if(ch||S.sessions.length!=n){applyTheme();if(scr=='home')home();else if(scr=='prog')prog()}if(S.sessions.length!=r.sessions.length||S.u!=r.u)await push()}
+ else{synced=true;await push()}syncMsg=stamp()}catch(e){syncMsg=e.message=='key'?'☁ Wrong sync key':'☁ Offline · will retry'}busy=0;showSync()}
+function syncTap(){if(!syncKey())return syncSetup();toast('Syncing…');(synced?(clearTimeout(pushT),push()):Promise.resolve()).then(pull).then(()=>toast(syncMsg||'Done'))}
+function syncSetup(){const k=prompt('Your sync key (same on all your own devices). Leave empty to turn sync off.',syncKey());if(k===null)return;{const o=syncKey(),n=k.trim();if(o&&n&&o!==n&&S.sessions.length&&!confirm("Switch to a different sync account? This device's progress ("+S.sessions.length+" sessions) will be merged into it. Only continue if this is your own device."))return}
+ try{k.trim()?localStorage[SYK]=k.trim():localStorage.removeItem(SYK)}catch(e){}synced=false;syncMsg='';if(scr=='home')home();k.trim()?pull():toast('Sync off')}
+addEventListener('focus',pull);addEventListener('online',pull);addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});setInterval(pull,3e5);pull();if('serviceWorker'in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+try{navigator.storage&&navigator.storage.persist()}catch(e){}
+home();
+</script></body></html>
