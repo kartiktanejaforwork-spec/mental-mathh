@@ -69,10 +69,12 @@ h1{background:linear-gradient(90deg,var(--tx),var(--ac));-webkit-background-clip
 html{overscroll-behavior-y:contain}body{touch-action:manipulation}.card{overflow-x:auto}.qc,.pad button{user-select:none;-webkit-user-select:none}
 @media(max-height:720px){.padon .pad button{padding:11px 0}.padon .q{font-size:clamp(38px,10vw,68px)}.padon .bf{height:44px}}
 .card[role=button]{cursor:pointer}[role=button]:focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:14px}#sy{padding:3px 0;font-weight:500}
+#ask{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:40;padding:16px}#ask form{background:var(--c);border:1px solid var(--ln);border-radius:16px;padding:20px;width:min(420px,100%)}#ask input{width:100%;margin:12px 0;padding:12px;font:inherit;font-size:18px;background:var(--c2);color:var(--tx);border:1px solid var(--ln);border-radius:10px}#ask input:focus{outline:2px solid var(--ac)}
+@media(prefers-contrast:more){:root{--mu:#b7c0d4;--ln:#4a5470}[data-theme=light]{--mu:#344058;--ln:#9aa5bd}}
 </style></head><body><div id=help></div><div id="app"></div><div id="toast"></div>
 <input type="file" id="imp" accept=".json" hidden>
 <script>
-const VER='2.2',KEY='mmTrainer.v1',$=s=>document.querySelector(s);
+const VER='2.4',KEY='mmTrainer.v1',$=s=>document.querySelector(s);
 const SK={add:{n:'Addition',m:.8,s:4.5},sub:{n:'Subtraction',m:.9,s:4.5},mul:{n:'Multiplication',m:1,s:5},div:{n:'Division',m:1,s:5},sq:{n:'Squares',m:.9,s:4},pct:{n:'Percent',m:1.1,s:4},ops:{n:'Multi-step',m:1.5,s:4}};
 const COL={add:'#6ea8ff',sub:'#8e9bff',mul:'#ff9f5a',div:'#ffcf5c',sq:'#4cd98a',pct:'#ff6b9a',ops:'#b48cff'},SH={add:'Add',sub:'Sub',mul:'Mul',div:'Div',sq:'Sq',pct:'%',ops:'Multi'},IDS=Object.keys(SK),clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(A,d)=>{const i=clamp(d,1,12)-1,lo=Math.floor(i);return A[lo]+(A[Math.min(lo+1,11)]-A[lo])*(i-lo)};
@@ -130,10 +132,13 @@ function how(p){const n=(p.q.match(/\d+/g)||[]).map(Number),a=p.a;let m,t;
  if(m=p.q.match(/^(\d+) \+ (\d+) × (\d+)$/))return m[2]+' × '+m[3]+' = '+m[2]*m[3]+' first, then + '+m[1]+' = '+a;
  if(m=p.q.match(/^(\d+) × (\d+) − (\d+)$/))return m[1]+' × '+m[2]+' = '+m[1]*m[2]+', then − '+m[3]+' = '+a;
  return ''}
-function calib(){const v=parseInt(prompt('Set every skill rating to (100–1200)?',Math.round(avgLv()*100)));if(v>=100&&v<=1200){IDS.forEach(k=>S.sk[k].lv=clamp(v/100,1,12));save();home();toast('All ratings set to '+v)}}
+function calib(){ask('Set every skill rating to (100–1200)',Math.round(avgLv()*100),x=>{const v=parseInt(x);if(v>=100&&v<=1200){IDS.forEach(k=>S.sk[k].lv=clamp(v/100,1,12));save();home();toast('All ratings set to '+v)}else toast('Enter a number from 100 to 1200')},'number')}
 const strength=k=>{const s=S.sk[k];return(1-s.acc)*3+Math.max(0,s.spd-1)};   // higher = weaker
 const mb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-function customLen(){const v=parseInt(prompt('Session length in seconds (10–3600)?',(S.cfg&&S.cfg.dur)||120));if(v>=10&&v<=3600)cfg('dur',v)}
+function ask(t,v,cb,type='text'){const o=document.createElement('div');o.id='ask';o.innerHTML=`<form><b>${t}</b><input type="${type}" autocomplete=off autocapitalize=off spellcheck=false inputmode="${type=='number'?'numeric':'text'}"><div><button class=p>OK</button><button type=button>Cancel</button></div></form>`;
+ const i=o.querySelector('input'),X=()=>{o.remove();document.removeEventListener('keydown',K,true)},K=e=>{e.stopPropagation();if(e.key=='Escape')X()};i.value=v;document.addEventListener('keydown',K,true);
+ o.querySelector('form').onsubmit=e=>{e.preventDefault();const x=i.value;X();cb(x)};o.querySelector('[type=button]').onclick=X;document.body.append(o);i.focus();i.select()}
+function customLen(){ask('Session length in seconds (10–3600)',(S.cfg&&S.cfg.dur)||120,x=>{const v=parseInt(x);v>=10&&v<=3600?cfg('dur',v):toast('Enter a number from 10 to 3600')},'number')}
 function nb(){scr='nb';const W=Object.values(S.weak).sort((a,b)=>a.box-b.box||(b.at||0)-(a.at||0));
  $('#app').innerHTML=`<div class=hd><h1>📓 Notebook</h1><button onclick="act('Escape')"><kbd>Esc</kbd> Back</button></div><div class=mu style="margin:6px 0 14px">Everything you missed, with the worked method. An item clears after 3 fast correct answers, spaced out. ${W.length} open.</div>
  ${W.length?`<div class=card><table><tr><th>Question<th>Answer<th>Worked method<th>Skill<th>Stage</tr>${W.map(w=>`<tr><td><b>${w.q}</b><td>${w.a}<td class=mu>${how(w)||w.tip||''}<td style="color:${COL[w.sk]}">${SK[w.sk].n}<td>${w.box}/3</tr>`).join('')}</table></div><p><button class=p onclick="start('review')">Review ${Math.min(W.length,20)} now <kbd>R</kbd></button><button onclick="if(confirm('Clear all missed questions?')){S.weak={};save();nb()}">Clear all</button></p>`:'<div class=card>Nothing missed yet. Nice.</div>'}`}
@@ -329,7 +334,7 @@ $('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileRe
  const b=fresh();S={...b,...o,sk:{...b.sk,...o.sk}};S.pat=S.pat||{};save();toast('Imported');scr=='prog'?prog():home()}catch(x){toast('Not a valid backup file')}e.target.value=''};r.readAsText(f)};
 function act(k){
  if(scr=='play'){if(sess.cd){if(k=='Escape'){clearInterval(sess.iv);sess=null;home()}else if(k=='Enter'||k==' ')sess.go();return}if(sess.paused){if(k=='Enter')resume();else if(k=='Escape')finish();return}if(/^\d$/.test(k)){if(sess.wrong){sess.wrong=0;buf=''}buf+=k;try{navigator.vibrate&&matchMedia('(pointer:coarse)').matches&&navigator.vibrate(5)}catch(e){}check()}else if(k=='Backspace'){if(sess.wrong){sess.wrong=0;buf=''}else buf=buf.slice(0,-1);$('#bf').textContent=buf+'▏'}
-  else if(k=='Enter'||k==' '){answer(false);next()}else if(k=='Escape')pause();else if(k=='h'||k=='H'){sess.cur.hinted=1;$('#ms').innerHTML='<span class=mu>'+(sess.cur.tip?'💡 '+sess.cur.tip+'<br>':'')+'🧠 '+how(sess.cur)+' · hint used: half points, no rating change</span>'}return}
+  else if(k=='Enter'||k==' '){if(performance.now()-sess.qs<350)return;answer(false);next()}else if(k=='Escape')pause();else if(k=='h'||k=='H'){sess.cur.hinted=1;$('#ms').innerHTML='<span class=mu>'+(sess.cur.tip?'💡 '+sess.cur.tip+'<br>':'')+'🧠 '+how(sess.cur)+' · hint used: half points, no rating change</span>'}return}
  k=k.toLowerCase();
  if($('#help').style.display=='grid'){$('#help').style.display='none';return}
  if(scr=='home'){if(k=='y')return start('daily');if(k=='n'&&Object.keys(S.weak).length)return nb();if(k=='d'){const o=[-1.5,0,1.5,3],i=(o.indexOf((S.cfg&&S.cfg.off)||0)+1)%4;return cfg('off',o[i])}if(k=='g'){S.goal=({1:2,2:3,3:5,5:1})[S.goal||2];save();return home()}if(k=='c'){S.noCd=!S.noCd;save();home();return toast('Countdown '+(S.noCd?'off':'on'))}if(k>='1'&&k<='6')return cfg('dur',[30,60,120,300,600,0][k-1]);if(k=='arrowleft'||k=='arrowright'){const o=['all',...IDS],c=Object.assign({only:'all'},S.cfg).only,i=(o.indexOf(c)+(k=='arrowright'?1:o.length-1))%o.length;return cfg('only',o[i])}}
@@ -348,7 +353,7 @@ addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;{const r
 ['beforeunload','pagehide'].forEach(ev=>addEventListener(ev,()=>{if(sess&&sess.n)finish()}));
 /* ---------- cloud sync (Netlify Function + Blobs) ---------- */
 const SYK='mmTrainer.sync',syncKey=()=>{try{return localStorage[SYK]||''}catch(e){return''}};
-let synced=false,syncMsg='',pushT,busy=0,ip;
+let synced=false,syncMsg='',pushT,busy=0,ip,syncProf='',syncN=null;const wrongMsg=()=>'☁ Wrong sync key'+(syncN===null?'':syncN?' · server knows '+syncN+' key'+(syncN>1?'s':'')+(syncN<2?' (redeploy after adding new env vars)':''):' · server has no keys set (redeploy)');
 const syncLine=()=>!syncKey()?'☁ Sync off · tap to set up':syncMsg||'☁ Syncing…',showSync=()=>{const e=$('#sy');if(e){e.textContent=syncLine();e.style.color=/Wrong/.test(e.textContent)?'var(--bad)':''}};
 function mergeS(a,b){const nw=(a.u||0)>=(b.u||0)?a:b,od=nw===a?b:a,m={...od,...nw},seen=new Set(),U=(x,y)=>[...new Set([...Object.keys(x||{}),...Object.keys(y||{})])];
  m.sessions=[...a.sessions,...b.sessions].filter(x=>!seen.has(x.t)&&seen.add(x.t)).sort((x,y)=>x.t-y.t);
@@ -356,18 +361,20 @@ function mergeS(a,b){const nw=(a.u||0)>=(b.u||0)?a:b,od=nw===a?b:a,m={...od,...n
  m.best={};U(a.best,b.best).forEach(k=>{const x=(a.best||{})[k],y=(b.best||{})[k];m.best[k]=!y||(x&&x.pts>=y.pts)?x:y});
  m.daily={};U(a.daily,b.daily).forEach(k=>m.daily[k]=Math.max((a.daily||{})[k]||0,(b.daily||{})[k]||0));
  m.lastExport=Math.max(a.lastExport||0,b.lastExport||0);m.u=Math.max(a.u||0,b.u||0);['pad','theme','acc','font','zen','mute','noBlur','noCd'].forEach(k=>m[k]=a[k]);return m}
-async function api(m,b){const r=await fetch('/api/sync',{method:m,headers:{'x-sync-key':syncKey(),'content-type':'application/json'},body:b?JSON.stringify(b):undefined});if(r.status==401)throw new Error('key');if(!r.ok)throw new Error('http'+r.status);return r.json()}
-const stamp=()=>'☁ Synced '+new Date().toTimeString().slice(0,5);
-async function push(){if(!syncKey()||!synced||sess)return;try{await api('PUT',S);syncMsg=stamp()}catch(e){syncMsg=e.message=='key'?'☁ Wrong sync key':'☁ Offline · will retry'}showSync()}
+async function api(m,b){const r=await fetch('/api/sync',{method:m,headers:{'x-sync-key':syncKey(),'content-type':'application/json'},body:b?JSON.stringify(b):undefined});if(r.status==401){syncN=+r.headers.get('x-keys-configured');if(isNaN(syncN))syncN=null;throw new Error('key')}if(!r.ok)throw new Error('http'+r.status);return r.json()}
+const stamp=()=>'☁ Synced '+new Date().toTimeString().slice(0,5)+(syncProf?' · '+syncProf:'');
+async function push(){if(!syncKey()||!synced||sess)return;try{await api('PUT',S);syncMsg=stamp()}catch(e){if(e.message=='http409'){synced=false;setTimeout(pull,300)}syncMsg=e.message=='key'?wrongMsg():'☁ Offline · will retry'}showSync()}
 function pushSoon(){if(!syncKey()||!synced)return;clearTimeout(pushT);pushT=setTimeout(push,1200)}
-async function pull(){if(!syncKey()||sess||busy)return;busy=1;try{const r=(await api('GET')).data;let ch=0;
+async function pull(){if(!syncKey()||sess||busy)return;busy=1;try{const j=await api('GET'),r=j.data;syncProf=j.profile||'';let ch=0;
  if(r&&r.sk&&Array.isArray(r.sessions)){ch=(r.u||0)>(S.u||0);const n=S.sessions.length;S=mergeS(S,r);S.pat=S.pat||{};try{localStorage[KEY]=JSON.stringify(S)}catch(e){}synced=true;
   if(ch||S.sessions.length!=n){applyTheme();if(scr=='home')home();else if(scr=='prog')prog()}if(S.sessions.length!=r.sessions.length||S.u!=r.u)await push()}
- else{synced=true;await push()}syncMsg=stamp()}catch(e){syncMsg=e.message=='key'?'☁ Wrong sync key':'☁ Offline · will retry'}busy=0;showSync()}
+ else{synced=true;await push()}syncMsg=stamp()}catch(e){syncMsg=e.message=='key'?wrongMsg():'☁ Offline · will retry'}busy=0;showSync()}
 function syncTap(){if(!syncKey())return syncSetup();toast('Syncing…');(synced?(clearTimeout(pushT),push()):Promise.resolve()).then(pull).then(()=>toast(syncMsg||'Done'))}
-function syncSetup(){const k=prompt('Your sync key (same on all your own devices). Leave empty to turn sync off.',syncKey());if(k===null)return;{const o=syncKey(),n=k.trim();if(o&&n&&o!==n&&S.sessions.length&&!confirm("Switch to a different sync account? This device's progress ("+S.sessions.length+" sessions) will be merged into it. Only continue if this is your own device."))return}
+function syncSetup(){ask('Sync key (same on all your own devices; empty = off)',syncKey(),syncSet)}
+function syncSet(k){{const o=syncKey(),n=k.trim();if(o&&n&&o!==n&&S.sessions.length&&!confirm("Switch to a different sync account? This device's progress ("+S.sessions.length+" sessions) will be merged into it. Only continue if this is your own device."))return}
  try{k.trim()?localStorage[SYK]=k.trim():localStorage.removeItem(SYK)}catch(e){}synced=false;syncMsg='';if(scr=='home')home();k.trim()?pull():toast('Sync off')}
 addEventListener('focus',pull);addEventListener('online',pull);addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});setInterval(pull,3e5);pull();if('serviceWorker'in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
 try{navigator.storage&&navigator.storage.persist()}catch(e){}
-home();
+{const h0=home;home=function(){const y=scr=='home'?scrollY:0;h0();if(y)scrollTo(0,y)}}
+home();{const q=new URLSearchParams(location.search).get('start');if(q=='daily')start('daily');else if(q=='train')start();else if(q=='review'&&Object.keys(S.weak).length)start('review')}
 </script></body></html>

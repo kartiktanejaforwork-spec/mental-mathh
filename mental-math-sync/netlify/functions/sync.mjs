@@ -12,11 +12,11 @@ const same = (a, b) => {
 // To add another person later: add SYNC_KEY_<NAME> in Netlify and redeploy. No code change.
 const users = () =>
   Object.entries(process.env)
-    .filter(([k, v]) => v && (k === "SYNC_KEY" || /^SYNC_KEY_[A-Z0-9_]+$/.test(k)))
-    .map(([k, v]) => ({
-      key: v,
-      store: k === "SYNC_KEY" ? "mental-math" : "mental-math-" + k.slice(9).toLowerCase().replace(/_/g, "-"),
-    }));
+    .filter(([k, v]) => v && v.trim() && /^SYNC_KEY(_[A-Z0-9_]+)?$/i.test(k))
+    .map(([k, v]) => {
+      const main = /^SYNC_KEY$/i.test(k), sfx = k.slice(9).toLowerCase().replace(/_/g, "-");
+      return { key: v.trim(), store: main ? "mental-math" : "mental-math-" + sfx, label: main ? "main" : sfx };
+    });
 
 const J = (o) => Response.json(o, { headers: { "cache-control": "no-store" } });
 
@@ -24,7 +24,7 @@ export default async (req) => {
   const sent = req.headers.get("x-sync-key");
   let who = null;
   for (const u of users()) if (same(sent, u.key) && !who) who = u; // checks all, no early exit
-  if (!who) return new Response("unauthorized", { status: 401 });
+  if (!who) return new Response("unauthorized", { status: 401, headers: { "x-keys-configured": String(users().length) } });
 
   const store = getStore({ name: who.store, consistency: "strong" });
 
@@ -33,12 +33,14 @@ export default async (req) => {
     if (new URL(req.url).searchParams.has("backup")) {
       return J((await store.get("backup", { type: "json" })) || {});
     }
-    return J({ data: await store.get("state", { type: "json" }) });
+    return J({ data: await store.get("state", { type: "json" }), profile: who.label });
   }
   if (req.method === "PUT") {
-    if (Number(req.headers.get("content-length") || 0) > 4e6) return new Response("too large", { status: 413 });
-    const body = await req.json().catch(() => null);
-    if (!body || !body.sk || !Array.isArray(body.sessions)) return new Response("bad data", { status: 400 });
+    const raw = await req.text();
+    if (raw.length > 4e6) return new Response("too large", { status: 413 });
+    let body = null;
+    try { body = JSON.parse(raw); } catch {}
+    if (!body || typeof body.sk !== "object" || !Array.isArray(body.sessions)) return new Response("bad data", { status: 400 });
     const old = await store.get("state", { type: "json" });
     if (old && Array.isArray(old.sessions) && body.sessions.length < old.sessions.length) {
       return new Response("would lose sessions", { status: 409 });
